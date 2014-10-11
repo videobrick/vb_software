@@ -5,6 +5,8 @@
 #include <linux/vmalloc.h>
 #include <linux/delay.h>
 #include <asm/io.h>
+#include <linux/clk.h>
+#include <mach/clock.h>
 
 #define CCM_BASE_ADDR  0x01C20000
 #define CSI1_BASE_ADDR 0x01C1D000
@@ -19,16 +21,35 @@ MODULE_DESCRIPTION("This is a my First Test Module...!");
 MODULE_AUTHOR("GVK51");
 
 
+static int csi1_enable_sys_clk(void)
+{
+	int     result;
+	struct clk *clk;
+
+	clk = clk_get(NULL, "ahb_csi1");
+	result = clk_enable(clk);
+	if(result) {
+		return result;
+	}
+
+	clk = clk_get(NULL, "csi1");
+	result = clk_enable(clk);
+
+
+	return result;
+}
+
 static int __init my_start_init(void){
 		int reg;
 		void __iomem *io;
 
-        io = ioremap(CCM_BASE_ADDR, 256);
+		csi1_enable_sys_clk();
+/*        io = ioremap(CCM_BASE_ADDR, 256);
 		iowrite32((1 << 31), io + CCM_CSI1_CLK);
 		reg = ioread32(io + CCM_CSI1_CLK);
 		printk(KERN_INFO "ccm_csi1_clk: 0x%08x!\n",reg);
         iounmap(io);
-
+*/
 		mdelay(500);
 
 		io = ioremap(CSI1_BASE_ADDR, 256);
