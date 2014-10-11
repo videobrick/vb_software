@@ -1,1 +1,2 @@
 kernel//home/f15h/SourceCode/VideoBrick/vb_software/kernel_modules/hello_world.ko
+kernel//home/f15h/SourceCode/VideoBrick/vb_software/kernel_modules/read_csi1_cfg_reg.ko

@@ -1,6 +1,6 @@
 ARCHA := arm
 CROSS := arm-linux-gnueabihf-
-obj-m := hello_world.o
+obj-m := hello_world.o read_csi1_cfg_reg.o
 KDIR := /home/f15h/SourceCode/linux-sunxi
 PWD := $(shell pwd)
 default:
