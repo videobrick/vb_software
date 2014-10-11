@@ -1,4 +1,6 @@
-y#!/bin/bash
+#!/bin/bash
+
+# Test Script for initializing ADV7611
 
 #use /dev/i2c1
 I2C_BUS=1
