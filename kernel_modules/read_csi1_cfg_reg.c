@@ -30,13 +30,17 @@ static int csi1_enable_sys_clk(void)
 	result = clk_enable(clk);
 	if(result) {
 		return result;
+	} else {
+		printk(KERN_INFO "ahb_csi1 Clk enabled!\n");
 	}
 
 	clk = clk_get(NULL, "csi1");
 	result = clk_enable(clk);
-
-
-	return result;
+	if(result) {
+		return result;
+	} else {
+		printk(KERN_INFO "csi1 Clk enabled!\n");
+	}
 }
 
 static int __init my_start_init(void){
@@ -44,26 +48,33 @@ static int __init my_start_init(void){
 		void __iomem *io;
 
 		csi1_enable_sys_clk();
-/*        io = ioremap(CCM_BASE_ADDR, 256);
-		iowrite32((1 << 31), io + CCM_CSI1_CLK);
+	
+	    io = ioremap(CCM_BASE_ADDR, 256);
+//		iowrite32((1 << 31), io + CCM_CSI1_CLK);
 		reg = ioread32(io + CCM_CSI1_CLK);
 		printk(KERN_INFO "ccm_csi1_clk: 0x%08x!\n",reg);
+		reg = ioread32(io + 0x64);
+		printk(KERN_INFO "ahb1 clock gating: 0x%08x!\n",reg);
+		iowrite32((1 << 30), io + CCM_CSI1_CLK);
+		reg = ioread32(io + CCM_CSI1_CLK);
+		printk(KERN_INFO "after reset ccm_csi1_clk: 0x%08x!\n",reg);
         iounmap(io);
-*/
+
 		mdelay(500);
+
+		
 
 		io = ioremap(CSI1_BASE_ADDR, 256);
 
 		if(io == NULL)
+		{
 			printk(KERN_INFO "ioremap error!\n");
+	        return 0;
+		}
 		else
 			printk(KERN_INFO "ioremap ok!\n");
 
-		iowrite32(0x1, io);
-
-		mdelay(500);
-
-        reg = ioread32(io);
+        reg = ioread32(io+CSI1_CFG_REG);
 
         printk(KERN_INFO "Register = 0x%08x\n", reg);
 
