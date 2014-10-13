@@ -55,7 +55,7 @@ static int __init my_start_init(void){
 		printk(KERN_INFO "ccm_csi1_clk: 0x%08x!\n",reg);
 		reg = ioread32(io + 0x64);
 		printk(KERN_INFO "ahb1 clock gating: 0x%08x!\n",reg);
-		iowrite32((1 << 30), io + CCM_CSI1_CLK);
+		iowrite32((1 << 31) | (1 << 30), io + CCM_CSI1_CLK);
 		reg = ioread32(io + CCM_CSI1_CLK);
 		printk(KERN_INFO "after reset ccm_csi1_clk: 0x%08x!\n",reg);
         iounmap(io);
