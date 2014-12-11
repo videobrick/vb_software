@@ -28,18 +28,56 @@ typedef enum regs_ADV7611_IO
 	ADV7611_IO_RD_INFO = 0xEA,
 	ADV7611_IO_CEC_SLAVE_ADDR = 0xF4,
 	ADV7611_IO_INFOFRAME_SLAVE_ADDR = 0xF5,
-	ADV7611_IO_DPLL_SLAVE_ADDR = 0xF6,
-	ADV7611_IO_KSV_SLAVE_ADDR = 0xF7,
-	ADV7611_IO_EDID_SLAVE_ADDR = 0xF8,
-	ADV7611_IO_HDMI_SLAVE_ADDR = 0xF9,
-	ADV7611_IO_CP_SLAVE_ADDR = 0xFA,
+	ADV7611_IO_DPLL_SLAVE_ADDR = 0xF8,
+	ADV7611_IO_KSV_SLAVE_ADDR = 0xF9,
+	ADV7611_IO_EDID_SLAVE_ADDR = 0xFA,
+	ADV7611_IO_HDMI_SLAVE_ADDR = 0xFB,
+	ADV7611_IO_CP_SLAVE_ADDR = 0xFD,
 } __regs_adv7611_io;
+
+typedef enum regs_ADV7611_CP
+{
+	ADV7611_CP_REG_3E = 0x3E,
+	ADV7611_CP_HDMI_CP_CNTRL_1 = 0xBA,
+} __regs_adv7611_cp;
+
+typedef enum regs_ADV7611_HDMI
+{
+	ADV7611_HDMI_REG_00 = 0x00,
+	ADV7611_HDMI_REG_02 = 0x02,
+	ADV7611_HDMI_REG_03 = 0x03,
+	ADV7611_HDMI_REG_9B = 0x9B,
+} __regs_adv7611_hdmi;
+	
+typedef enum regs_ADV7611_KSV
+{
+	ADV7611_KSV_BCAPS = 0x40,
+	ADV7611_KSV_HDCP_EDID_CONTROLS = 0x74,
+} __regs_adv7611_ksv;
 
 typedef struct defs_ADV7611_IO
 {
 	__regs_adv7611_io reg;
 	unsigned char value;
 } __defs_adv7611_io;
+
+typedef struct defs_ADV7611_CP
+{
+	__regs_adv7611_cp reg;
+	unsigned char value;
+} __defs_adv7611_cp;
+
+typedef struct defs_ADV7611_HDMI
+{
+	__regs_adv7611_hdmi reg;
+	unsigned char value;
+} __defs_adv7611_hdmi;
+
+typedef struct defs_ADV7611_KSV
+{
+	__regs_adv7611_ksv reg;
+	unsigned char value;
+} __defs_adv7611_ksv;
 
 static int adv7611_read(struct v4l2_subdev *sd, int i2c_addr, unsigned char reg,
 		unsigned char *data, unsigned char len);
@@ -57,7 +95,7 @@ static int adv7611_edid_read(struct v4l2_subdev *sd, unsigned char reg,
 		unsigned char *data, unsigned char len);
 static int adv7611_hdmi_read(struct v4l2_subdev *sd, unsigned char reg,
 		unsigned char *data, unsigned char len);
-static int adv7611_cp_read(struct v4l2_subdev *sd, unsigned char reg,
+static int adv7611_cp_read(struct v4l2_subdev *sd, __regs_adv7611_cp reg,
 		unsigned char *data, unsigned char len);
 
 static int adv7611_write(struct v4l2_subdev *sd, int i2c_addr, unsigned char reg,
@@ -76,5 +114,7 @@ static int adv7611_edid_write(struct v4l2_subdev *sd, unsigned char reg,
 		unsigned char *data, unsigned char len);
 static int adv7611_hdmi_write(struct v4l2_subdev *sd, unsigned char reg,
 		unsigned char *data, unsigned char len);
-static int adv7611_cp_write(struct v4l2_subdev *sd, unsigned char reg,
+static int adv7611_cp_write(struct v4l2_subdev *sd, __regs_adv7611_cp reg,
 		unsigned char *data, unsigned char len);
+
+static int sensor_detect(struct v4l2_subdev *sd);
