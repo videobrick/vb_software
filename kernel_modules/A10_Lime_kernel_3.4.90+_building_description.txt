@@ -1,0 +1,282 @@
+
+How to make a bootable SD card for A10-OLinuXino-Lime with kernel 3.4 and debian file system
+======================================================================================
+
+1. Setup of the toolchain
+-------------------------
+You should make sure you have the tools for building the Linux Kernel and install them if you don't have them. To install new software you should be with super user rights on your Linux machine, so do this type in a terminal.
+
+$ sudo su
+you will be asked for your password and then your prompt will change to # which means you are now the super user, all future commands should be run in this mode.
+
+First update apt-get links by typing
+
+# apt-get update
+Install the toolchain by typing the following.
+
+# apt-get install gcc-4.7-arm-linux-gnueabihf ncurses-dev uboot-mkimage build-essential git
+This will install: GCC compiler used to compile the kernal, The kernel config menu
+uboot make image which is required to allow the SD card to book into the linux image, Git which allows you to download from the github which holds source code for some of the system, Some other tools for building the kernel
+
+Note that if you use debian may be you will need to add
+
+deb http://www.emdebian.org/debian squeeze main
+in the file below:
+
+/etc/apt/sources.list
+after the installation you now have all tools to make your very own A10 kernel image!
+
+2. Building Uboot
+-----------------
+For Uboot related questions please ask on Linux Sunxi Mailing List in Google Groups: https://groups.google.com/forum/#!forum/linux-sunxi
+
+First let's make the directory where we will build the A10-OLinuXino-Micro linux:
+
+# mkdir A10_kernel_3.4/
+# cd A10_kernel_3.4/
+Then let's download the uboot sources from GitHub repository, note there are lot of branches but you have to use sunxi branch.
+Note that the A10-OLinuXino-Lime board u-boot is tested with the next branch:
+
+# git rev-parse --verify HEAD
+44b53fd3928f15c34993ec8c6b8c2efcb79769ee
+
+Download u-boot sourses:
+# git clone -b sunxi https://github.com/linux-sunxi/u-boot-sunxi.git
+After the download you should have a new directory
+
+# cd u-boot-sunxi/
+With the following command you can start the uboot build:
+
+# make ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- distclean
+# make ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- A10-OLinuXino-Lime_config
+# make ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf-
+
+At the end of the process you can check if everything is OK by
+
+# ls u-boot.bin u-boot-sunxi-with-spl.bin spl/sunxi-spl.bin
+
+spl/sunxi-spl.bin  u-boot.bin  u-boot-sunxi-with-spl.bin
+
+If you got these files everything is complete, well done so far
+
+# cd ..
+You should be in the following directory
+
+/home/user/A10_kernel_3.4/#
+
+3. Building kernel sources for A10-OLinuXino-Lime
+----------------------------------------------
+For Allwinner Kernel related questions please ask on Linux Sunxi Mailing List in Google Groups: https://groups.google.com/forum/#!forum/linux-sunxi
+
+Kernel sources for A10 are available on GitHub. Note that the following building is made with the revision below: 
+
+# git rev-parse --verify HEAD
+e37d760b363888f3a65cd6455c99a75cac70a7b8
+
+You can download the kernel sources using the following command:
+
+# git clone https://github.com/linux-sunxi/linux-sunxi
+After the download go to the kernel directory
+
+# cd linux-sunxi/
+Here you need from A10 configuration file: a10lime_defconfig. The file contains all kernel module settings.
+
+Download a10lime_defconfig using wget command:
+# wget https://drive.google.com/file/d/0B-bAEPML8fwlbzZSQUxoY0Nxa2c/edit?usp=sharing
+
+then copy a10lime_defconfig file to configs directory:
+
+# cp a10lime_defconfig linux-sunxi/arch/arm/configs/.
+and make:
+
+# make ARCH=arm a10lime_defconfig
+
+The result should be:
+configuration written to .config
+
+If you wish to make your changes in the kernel configuration do:
+
+# make ARCH=arm menuconfig
+The menuconfig changes a .config text file, which you can view/edit even with a text editor like vi,nano.
+With this command you can add or remove different modules for the different peripherials in the kernel. Be careful when use this as this may cause the kernel to not work properly.
+
+Now you can continue with kernel image compiling 
+
+# make ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- -j4 uImage
+
+when this finish you will have uImage ready and the result should be:
+
+Image Name:   Linux-3.4.90+
+Created:      Fri Jun 13 16:28:39 2014
+Image Type:   ARM Linux Kernel Image (uncompressed)
+Data Size:    4447440 Bytes = 4343.20 kB = 4.24 MB
+Load Address: 40008000
+Entry Point:  40008000
+Image arch/arm/boot/uImage is ready
+
+Now you can build the kernel modules:
+
+# make ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- -j4 INSTALL_MOD_PATH=out modules
+# make ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- -j4 INSTALL_MOD_PATH=out modules_install
+
+DONE! At this point you have uboot and kernel modules.
+
+The uImage file is located in linux-sunxi/arch/arm/boot/
+
+The kernel modules are located in
+
+linux-sunxi/out/lib/modules/3.x.xx
+where 3.x.xx is kernel version
+
+in our case the directory with modules is:
+
+linux-sunxi/out/lib/modules/3.4.90+
+
+4. Format and setup the SD-card
+--------------------------------
+We suggest 4GB class 10 micro sd-card but you can use any card between 2GB and 16GB.
+
+First we have to make the correct card partitions, this is done with fdisk.
+
+Plug SD card into your SD card reader and enter in the terminal
+
+# ls /dev/sd
+Then press two times <TAB> you will see a list of your sd devices like sda sdb sdc note that some of these devices may be your hard disk so make sure you know which one is your sd card before you proceed as you can damage your HDD if you choose the wrong sd-device. You can do this by unplugging your sd card reader and identify which “sd” devices remove from the list.
+
+Once you know which device is your sdcard like sda use this text instead of the sdX name in the references below:
+
+# fdisk /dev/sdX
+then do these steps:
+
+1. p
+will list your partitions
+
+if there are already partitions on your card do:
+
+2. d enter 1
+if you have more than one partitition press d while delete them all
+
+3. create the first partition, starting from 2048 
+n enter p enter 1 enter enter +16M
+
+4. create second partition
+n enter p enter 2 enter enter enter
+
+then list the created partitions:
+p enter
+if you did everything correctly on 4GB card you should see something like:
+
+Disk /dev/sdg: 3980 MB, 3980394496 bytes
+123 heads, 62 sectors/track, 1019 cylinders, total 7774208 sectors
+Units = sectors of 1 * 512 = 512 bytes
+Sector size (logical/physical): 512 bytes / 512 bytes
+I/O size (minimum/optimal): 512 bytes / 512 bytes
+Disk identifier: 0x00000000
+
+   Device Boot      Start         End      Blocks   Id  System
+/dev/sdg1            2048       34815       16384   83  Linux
+/dev/sdg2           34816     7774207     3869696   83  Linux
+
+7. w
+
+write changes to sd card
+now we have to format the file system on the card:
+
+the first partition should be vfat as this is FS which the Allwinner bootloader understands
+
+# mkfs.vfat /dev/sdX1
+the second should be normal Linux EXT3 FS
+
+# mkfs.ext3 /dev/sdX2
+
+
+5. Write the Uboot and sunxi-spl.bin
+-------------------------------------
+You should be in /home/user/A10_kernel_3.4/# directory 
+Note that you have to write u-boot-sunxi-with-spl.bin in /dev/sdX (not sdX1 or sdX2)
+
+# dd if=u-boot-sunxi/u-boot-sunxi-with-spl.bin of=/dev/sdX bs=1024 seek=8
+
+
+6. Write kernel uImage you build to the SD-card
+-----------------------------------------------
+You should be in the directory below
+
+/home/user/A10_kernel_3.4/# directory 
+# mount /dev/sdX1 /mnt/sd
+copy the Kernel uImage to root directory in partition 1
+
+# cp linux-sunxi/arch/arm/boot/uImage /mnt/sd
+
+7. Write script.bin file and boot.scr file
+----------------------------------------------------
+script.bin is a file with very important configuration parameters like port GPIO assignments, DDR memory parameters, Video resolution etc, 
+download the script.bin file using wget command:
+
+# wget https://drive.google.com/file/d/0B-bAEPML8fwlaFNGd05tajl3dlk/edit?usp=sharing
+# cp script.bin /mnt/sd
+
+boot.scr contains your needed uboot commands for loading script.bin, kernel. initrd (optional), setting kernel parameters and booting.
+We offer the boot.scr file ready to use but if you whant to change it you can then read https://github.com/linux-sunxi/u-boot-sunxi/wiki
+
+download the boot.scr file using wget command:
+
+# wget https://drive.google.com/file/d/0B-bAEPML8fwlMFNQRzhlek1TTGM/edit?usp=sharing
+
+# cp boot.scr /mnt/sd
+# sync
+# umount /dev/sdX1
+
+8. Debian rootfs
+----------------
+The Linux Kernel and Uboot are ready, now we have need from Linux distribution rootfs.
+
+Basically the only difference between the different Linux distributions is the rootfs, so if you put Debian rootfs you will have Debian, if you put Ubuntu rootfs it will be Ubuntu etc.
+
+How to build one is a long topic, the good thing is that there are many already pre-built so we can just download one and use.
+
+exit the kernel directory
+
+# cd ..
+You should be in the directory below
+
+# /home/user/A10_kernel_3.4/
+download debian rootfs : a10_lime_debian_3_4_90_rel_3.tgz using wget command:
+
+# wget https://drive.google.com/file/d/0B-bAEPML8fwlSW9wQUhWbDE3T3c/edit?usp=sharing
+
+mount your sd card EXT3 FS partition:
+
+# mkdir /mnt/sd
+# mount /dev/sdX2 /mnt/sd
+
+and unarchive the rootfs
+
+# tar xzvf a10_lime_debian_3_4_90_rel_3.tgz -C /mnt/sd
+# ls /mnt/sd
+the right result should be:
+bin   dev  home  lost+found  mnt  proc  run   selinux  sys  usr
+boot  etc  lib   media       opt  root  sbin  srv      tmp  var
+
+Now you have to replace the new generated kernel modules from /home/user/A10_kernel_3.4/linux-sunxi/out/lib/modules/  to the new debian file system
+
+# rm -rf /mnt/sd/lib/modules/*
+
+# cp -rfv linux-sunxi/out/lib/modules/3.x.xx+/ /mnt/sd/lib/modules/
+where x.xx is the kernel version
+in our case:
+# cp -rfv linux-sunxi/out/lib/modules/3.4.90+/ /mnt/sd/lib/modules/
+
+replace /lib/firmware folder with the generated /linux-sunxi/out/firmware
+#rm -rf /mnt/sd/lib/firmware/
+#cp -rfv linux-sunxi/out/lib/firmware/ /mnt/sd/lib/
+
+# sync
+# umount /mnt/sdX2
+
+at this point you have Debian on your SD card second partition and 
+you have an SD card ready to boot debian on A10-OLinuXino-Lime
+
+Connect USB-SERIAL-CABLE-F to UEXT Tx.Rx and GND, or connect a HDMI screen. Put the SD-card in A10-OLinuXino-Lime and apply 5V power, you should see Uboot and then Kernel messages on the console
+
+default username/password is : root / olimex

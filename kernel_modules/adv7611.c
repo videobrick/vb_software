@@ -1,5 +1,10 @@
 /*
- * drivers/media/video/sun4i_csi/device/gt2005.c
+ * drivers/media/video/sun4i_csi/device/adv7611.c
+ *
+ * (C) Copyright 2014
+ * Georg Ottinger
+ *
+ * derived from: drivers/media/video/sun4i_csi/device/gt2005.c
  *
  * (C) Copyright 2007-2012
  * Allwinner Technology Co., Ltd. <www.allwinnertech.com>
@@ -117,7 +122,8 @@ unsigned char adv7611_i2c_map[7] = {
 
 __defs_adv7611_io defs_adv7611_io[] = {
 	
-	{ ADV7611_IO_PRIMARY_MODE, 0x06 }, 	// V-FREQ = 60Hz Prim_Mode = HDMI-GR 
+//	{ ADV7611_IO_PRIMARY_MODE, 0x06 }, 	// V-FREQ = 60Hz Prim_Mode = HDMI-GR 
+	{ ADV7611_IO_PRIMARY_MODE, 0x16 }, 	// V-FREQ = 50Hz Prim_Mode = HDMI-GR 
 	{ ADV7611_IO_REG_02, 0xf2 },		// Auto CSC, RGB out Disable op_656 bit
 	{ ADV7611_IO_REG_03, 0x42 },		// 36 bit SDR 444 Mode 0
 	{ ADV7611_IO_REG_05, 0x28 }, 		// AV Codes Off 
@@ -162,8 +168,8 @@ __defs_adv7611_hdmi defs_adv7611_hdmi[] = {
 
 
 __defs_adv7611_ksv defs_adv7611_ksv[] = {
-	{ ADV7611_KSV_BCAPS, 0x81 },		// Disable HDCP 1.1 features
-	{ ADV7611_KSV_HDCP_EDID_CONTROLS, 0x01 },		// Enable the Internal EDID
+	{ ADV7611_KSV_BCAPS, 0x81 },				// Disable HDCP 1.1 features
+	{ ADV7611_KSV_HDCP_EDID_CONTROLS, 0x01 },	// Enable the Internal EDID
 };
 /* Registers */
 
@@ -1816,41 +1822,49 @@ static struct sensor_format_struct {
 	int	regs_size;
 	int bpp;   /* Bytes per pixel */
 } sensor_formats[] = {
+	
 	{
-		.desc		= "YUYV 4:2:2",
-		.mbus_code	= V4L2_MBUS_FMT_YUYV8_2X8,//linux-3.0
-		.regs 		= sensor_fmt_yuv422_yuyv,
-		.regs_size = ARRAY_SIZE(sensor_fmt_yuv422_yuyv),
-		.bpp		= 2,
-	},
-	{
-		.desc		= "YVYU 4:2:2",
-		.mbus_code	= V4L2_MBUS_FMT_YVYU8_2X8,//linux-3.0
-		.regs 		= sensor_fmt_yuv422_yvyu,
-		.regs_size = ARRAY_SIZE(sensor_fmt_yuv422_yvyu),
-		.bpp		= 2,
-	},
-	{
-		.desc		= "UYVY 4:2:2",
-		.mbus_code	= V4L2_MBUS_FMT_UYVY8_2X8,//linux-3.0
-		.regs 		= sensor_fmt_yuv422_uyvy,
-		.regs_size = ARRAY_SIZE(sensor_fmt_yuv422_uyvy),
-		.bpp		= 2,
-	},
-	{
-		.desc		= "VYUY 4:2:2",
-		.mbus_code	= V4L2_MBUS_FMT_VYUY8_2X8,//linux-3.0
-		.regs 		= sensor_fmt_yuv422_vyuy,
-		.regs_size = ARRAY_SIZE(sensor_fmt_yuv422_vyuy),
-		.bpp		= 2,
-	},
-	{
-		.desc		= "Raw RGB Bayer",
-		.mbus_code	= V4L2_MBUS_FMT_SBGGR8_1X8,//linux-3.0
-		.regs 		= sensor_fmt_raw,
-		.regs_size = ARRAY_SIZE(sensor_fmt_raw),
-		.bpp		= 1
-	},
+		.desc		= "RGB-8-8-8",
+		.mbus_code	= V4L2_PIX_FMT_RGB24,//linux-3.0
+		.regs 		= NULL, //sensor_fmt_yuv422_yuyv,
+		.regs_size  = NULL, //ARRAY_SIZE(sensor_fmt_yuv422_yuyv),
+		.bpp		= 3,
+	},	
+//	{
+//		.desc		= "YUYV 4:2:2",
+//		.mbus_code	= V4L2_MBUS_FMT_YUYV8_2X8,//linux-3.0
+//		.regs 		= sensor_fmt_yuv422_yuyv,
+//		.regs_size = ARRAY_SIZE(sensor_fmt_yuv422_yuyv),
+//		.bpp		= 2,
+//	},
+//	{
+//		.desc		= "YVYU 4:2:2",
+//		.mbus_code	= V4L2_MBUS_FMT_YVYU8_2X8,//linux-3.0
+//		.regs 		= sensor_fmt_yuv422_yvyu,
+//		.regs_size = ARRAY_SIZE(sensor_fmt_yuv422_yvyu),
+//		.bpp		= 2,
+//	},
+//	{
+//		.desc		= "UYVY 4:2:2",
+//		.mbus_code	= V4L2_MBUS_FMT_UYVY8_2X8,//linux-3.0
+//		.regs 		= sensor_fmt_yuv422_uyvy,
+//		.regs_size = ARRAY_SIZE(sensor_fmt_yuv422_uyvy),
+//		.bpp		= 2,
+//	},
+//	{
+//		.desc		= "VYUY 4:2:2",
+//		.mbus_code	= V4L2_MBUS_FMT_VYUY8_2X8,//linux-3.0
+//		.regs 		= sensor_fmt_yuv422_vyuy,
+//		.regs_size = ARRAY_SIZE(sensor_fmt_yuv422_vyuy),
+//		.bpp		= 2,
+//	},
+//	{
+//		.desc		= "Raw RGB Bayer",
+//		.mbus_code	= V4L2_MBUS_FMT_SBGGR8_1X8,//linux-3.0
+//		.regs 		= sensor_fmt_raw,
+//		.regs_size = ARRAY_SIZE(sensor_fmt_raw),
+//		.bpp		= 1
+//	},
 };
 #define N_FMTS ARRAY_SIZE(sensor_formats)
 
@@ -1881,14 +1895,14 @@ static struct sensor_win_size {
 //		.regs_size	= ARRAY_SIZE(sensor_uxga_regs),
 //		.set_size		= NULL,
 //	},
-//	/* 720p */
-//	{
-//		.width			= HD720_WIDTH,
-//		.height			= HD720_HEIGHT,
-//		.regs				= sensor_hd720_regs,
-//		.regs_size	= ARRAY_SIZE(sensor_hd720_regs),
-//		.set_size		= NULL,
-//	},
+	/* 720p */
+	{
+		.width			= HD720_WIDTH,
+		.height			= HD720_HEIGHT,
+		.regs			= NULL, //sensor_hd720_regs,
+		.regs_size	    = NULL, //ARRAY_SIZE(sensor_hd720_regs),
+		.set_size		= NULL,
+	},
 //	/* SVGA */
 //	{
 //		.width			= SVGA_WIDTH,
@@ -1897,14 +1911,14 @@ static struct sensor_win_size {
 //		.regs_size	= ARRAY_SIZE(sensor_svga_regs),
 //		.set_size		= NULL,
 //	},
-	/* VGA */
-	{
-		.width			= VGA_WIDTH,
-		.height			= VGA_HEIGHT,
-		.regs				= sensor_vga_regs,
-		.regs_size	= ARRAY_SIZE(sensor_vga_regs),
-		.set_size		= NULL,
-	},
+//	/* VGA */
+//	{
+//		.width			= VGA_WIDTH,
+//		.height			= VGA_HEIGHT,
+//		.regs				= sensor_vga_regs,
+//		.regs_size	= ARRAY_SIZE(sensor_vga_regs),
+//		.set_size		= NULL,
+//	},
 };
 
 #define N_WIN_SIZES (ARRAY_SIZE(sensor_win_sizes))
@@ -2061,12 +2075,12 @@ static int sensor_s_parm(struct v4l2_subdev *sd, struct v4l2_streamparm *parms)
 //	struct v4l2_fract *tpf = &cp->timeperframe;
 //	struct sensor_info *info = to_state(sd);
 //	int div;
-
+//
 //	if (parms->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
 //		return -EINVAL;
 //	if (cp->extendedmode != 0)
 //		return -EINVAL;
-
+//
 //	if (tpf->numerator == 0 || tpf->denominator == 0)
 //		div = 1;  /* Reset to full rate */
 //	else {
@@ -2087,10 +2101,10 @@ static int sensor_s_parm(struct v4l2_subdev *sd, struct v4l2_streamparm *parms)
 //
 //	info->clkrc = (info->clkrc & 0x80) | div;
 //	tpf->numerator = 1;
-//	tpf->denominator = sensor_FRAME_RATE/div;
+//	tpf->denominator = SENSOR_FRAME_RATE/div;
 //
-//	sensor_write(sd, REG_CLKRC, info->clkrc);
-	return -EINVAL;
+////	sensor_write(sd, REG_CLKRC, info->clkrc);
+//	return -EINVAL;
 }
 
 
