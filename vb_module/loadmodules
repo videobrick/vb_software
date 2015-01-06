@@ -1,0 +1,6 @@
+rmmod sun4i_csi1
+rmmod adv7611
+modprobe videobuf-core
+modprobe videobuf-dma-contig
+insmod adv7611.ko
+insmod sun4i_csi1.ko

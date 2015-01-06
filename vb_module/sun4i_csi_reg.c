@@ -45,7 +45,8 @@ void bsp_csi_close(struct csi_dev *dev)
 void bsp_csi_configure(struct csi_dev *dev,__csi_conf_t *mode)
 {
 	u32 t;
-	W(dev->regs+CSI_REG_CONF, mode->input_fmt << 20 | /* [21:20] */
+	W(dev->regs+CSI_REG_CONF, //mode->input_fmt << 20 | /* [21:20] */
+							  4 << 20 | /* 24Bit YUV or RGB input */	
 							  mode->output_fmt<< 16 | /* [18:16] */
 							  mode->field_sel << 10 | /* [11:10] */
 							  mode->seq       << 8  | /* [9:8] */

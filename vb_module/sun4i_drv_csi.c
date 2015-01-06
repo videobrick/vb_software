@@ -123,7 +123,7 @@ static struct i2c_board_info  dev_sensor[] =  {
 
 //ccm support format
 static struct csi_fmt formats[] = {
-	{
+/*	{
 		.name     		= "planar YUV 422",
 		.ccm_fmt			= V4L2_MBUS_FMT_YUYV8_2X8,//linux-3.0
 		.fourcc   		= V4L2_PIX_FMT_YUV422P,
@@ -240,6 +240,16 @@ static struct csi_fmt formats[] = {
 		.depth    		= 16,
 		.planes_cnt		= 1,
 	},
+*/
+	{
+		.name     		= "planar YUV 420 UV combined",
+		.ccm_fmt		= V4L2_MBUS_FMT_FIXED,	//linux-3.0
+		.fourcc   		= V4L2_PIX_FMT_GREY, //V4L2_PIX_FMT_RGB24,
+		.input_fmt		= CSI_RAW,
+		.output_fmt		= 12,
+		.depth    		= 8,
+		.planes_cnt		= 1,
+	},
 };
 
 static struct csi_fmt *get_format(struct v4l2_format *f)
@@ -285,9 +295,9 @@ static inline void csi_set_addr(struct csi_dev *dev,struct csi_buffer *buffer)
 
 
 	if(dev->fmt->input_fmt==CSI_RAW){
-		dev->csi_buf_addr.y  = addr_org;
-		dev->csi_buf_addr.cb = addr_org;
-		dev->csi_buf_addr.cr = addr_org;
+		dev->csi_buf_addr.y  = addr_org + dev->width*dev->height*2;
+		dev->csi_buf_addr.cb = addr_org + dev->width*dev->height*0 ;
+		dev->csi_buf_addr.cr = addr_org + dev->width*dev->height*1;
 
 	}else if(dev->fmt->input_fmt==CSI_BAYER){
 		//really rare here
@@ -334,6 +344,9 @@ static inline void csi_set_addr(struct csi_dev *dev,struct csi_buffer *buffer)
 	bsp_csi_set_buffer_address(dev, CSI_BUF_2_A, dev->csi_buf_addr.cr);
 	bsp_csi_set_buffer_address(dev, CSI_BUF_2_B, dev->csi_buf_addr.cr);
 
+	printk("csi_buf_addr_y=%x\n",  dev->csi_buf_addr.y);
+	printk("csi_buf_addr_cb=%x\n", dev->csi_buf_addr.cb);
+	printk("csi_buf_addr_cr=%x\n", dev->csi_buf_addr.cr);
 	csi_dbg(3,"csi_buf_addr_y=%x\n",  dev->csi_buf_addr.y);
 	csi_dbg(3,"csi_buf_addr_cb=%x\n", dev->csi_buf_addr.cb);
 	csi_dbg(3,"csi_buf_addr_cr=%x\n", dev->csi_buf_addr.cr);
@@ -459,6 +472,7 @@ static int csi_clk_disable(struct csi_dev *dev)
 	clk_disable(dev->csi_ahb_clk);
 //	clk_disable(dev->csi_module_clk);
 	clk_disable(dev->csi_isp_clk);
+
 	clk_disable(dev->csi_dram_clk);
 
 	return 0;
@@ -610,8 +624,14 @@ static int buffer_setup(struct videobuf_queue *vq, unsigned int *count, unsigned
 			case	V4L2_PIX_FMT_VYUY:
 				*size = dev->width * dev->height * 2;
 				break;
+			case	V4L2_PIX_FMT_RGB24:
+				*size = dev->width * dev->height * 3;
+				break;
+			case	V4L2_PIX_FMT_GREY:
+				*size = dev->width * dev->height * 3;
+				break;
 			default:
-				*size = dev->width * dev->height;
+				*size = dev->width * dev->height ;
 				break;
 		}
 	}
@@ -1406,7 +1426,8 @@ static int csi_open(struct file *file)
 	}
 
 	dev->opened=1;
-	dev->fmt = &formats[10]; //default format
+// HACK-WARNING
+	dev->fmt = &formats[12]; //default format
 	return 0;
 }
 

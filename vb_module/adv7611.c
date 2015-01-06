@@ -107,7 +107,7 @@ MODULE_LICENSE("GPL");
 /*
  * Our nominal (default) frame rate.
  */
-#define SENSOR_FRAME_RATE 30
+#define SENSOR_FRAME_RATE 50
 
 
 unsigned char adv7611_i2c_map[7] = {
@@ -1825,7 +1825,7 @@ static struct sensor_format_struct {
 	
 	{
 		.desc		= "RGB-8-8-8",
-		.mbus_code	= V4L2_PIX_FMT_RGB24,//linux-3.0
+		.mbus_code	= V4L2_MBUS_FMT_RGB444_2X8_PADHI_LE,//linux-3.0
 		.regs 		= NULL, //sensor_fmt_yuv422_yuyv,
 		.regs_size  = NULL, //ARRAY_SIZE(sensor_fmt_yuv422_yuyv),
 		.bpp		= 3,
