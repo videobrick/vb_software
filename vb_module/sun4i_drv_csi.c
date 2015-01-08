@@ -242,7 +242,7 @@ static struct csi_fmt formats[] = {
 	},
 */
 	{
-		.name     		= "planar YUV 420 UV combined",
+		.name     		= "Grey singel plane",
 		.ccm_fmt		= V4L2_MBUS_FMT_FIXED,	//linux-3.0
 		.fourcc   		= V4L2_PIX_FMT_GREY, //V4L2_PIX_FMT_RGB24,
 		.input_fmt		= CSI_RAW,
@@ -250,6 +250,16 @@ static struct csi_fmt formats[] = {
 		.depth    		= 8,
 		.planes_cnt		= 1,
 	},
+	{
+		.name     		= "yuv422",
+		.ccm_fmt		= V4L2_MBUS_FMT_FIXED,	//linux-3.0
+		.fourcc   		= V4L2_PIX_FMT_NV16, //V4L2_PIX_FMT_RGB24,
+		.input_fmt		= CSI_RAW,
+		.output_fmt		= 12,
+		.depth    		= 16,
+		.planes_cnt		= 2,
+	},
+
 };
 
 static struct csi_fmt *get_format(struct v4l2_format *f)
@@ -295,9 +305,9 @@ static inline void csi_set_addr(struct csi_dev *dev,struct csi_buffer *buffer)
 
 
 	if(dev->fmt->input_fmt==CSI_RAW){
-		dev->csi_buf_addr.y  = addr_org + dev->width*dev->height*2;
-		dev->csi_buf_addr.cb = addr_org + dev->width*dev->height*0 ;
-		dev->csi_buf_addr.cr = addr_org + dev->width*dev->height*1;
+		dev->csi_buf_addr.y  = addr_org + dev->width*dev->height*1;
+		dev->csi_buf_addr.cb = addr_org + dev->width*dev->height*0;
+		dev->csi_buf_addr.cr = addr_org + dev->width*dev->height*0;
 
 	}else if(dev->fmt->input_fmt==CSI_BAYER){
 		//really rare here
@@ -1396,7 +1406,7 @@ static int csi_open(struct file *file)
 	dev->input=0;//default input
 
 	bsp_csi_open(dev);
-	bsp_csi_set_offset(dev,0,0);//h and v offset is initialed to zero
+	bsp_csi_set_offset(dev,200,10);//h and v offset is initialed to zero
 
 	ret = v4l2_subdev_call(dev->sd,core, s_power, CSI_SUBDEV_STBY_OFF);
 	if (ret!=0) {
