@@ -251,13 +251,13 @@ static struct csi_fmt formats[] = {
 		.planes_cnt		= 1,
 	},
 	{
-		.name     		= "yuv422",
+		.name     		= "nv16",
 		.ccm_fmt		= V4L2_MBUS_FMT_FIXED,	//linux-3.0
 		.fourcc   		= V4L2_PIX_FMT_NV16, //V4L2_PIX_FMT_RGB24,
 		.input_fmt		= CSI_RAW,
 		.output_fmt		= 12,
 		.depth    		= 16,
-		.planes_cnt		= 2,
+		.planes_cnt		= 1,
 	},
 
 };
@@ -307,7 +307,7 @@ static inline void csi_set_addr(struct csi_dev *dev,struct csi_buffer *buffer)
 	if(dev->fmt->input_fmt==CSI_RAW){
 		dev->csi_buf_addr.y  = addr_org + dev->width*dev->height*1;
 		dev->csi_buf_addr.cb = addr_org + dev->width*dev->height*0;
-		dev->csi_buf_addr.cr = addr_org + dev->width*dev->height*0;
+		dev->csi_buf_addr.cr = addr_org + dev->width*dev->height*2;
 
 	}else if(dev->fmt->input_fmt==CSI_BAYER){
 		//really rare here
@@ -637,6 +637,7 @@ static int buffer_setup(struct videobuf_queue *vq, unsigned int *count, unsigned
 			case	V4L2_PIX_FMT_RGB24:
 				*size = dev->width * dev->height * 3;
 				break;
+			case	V4L2_PIX_FMT_NV16:
 			case	V4L2_PIX_FMT_GREY:
 				*size = dev->width * dev->height * 3;
 				break;
@@ -957,7 +958,10 @@ static int vidioc_s_fmt_vid_cap(struct file *file, void *priv,
 			width_len  = dev->width*2;
 			width_buf = dev->width*2;
 			height_buf = dev->height;
-
+		} else if (dev->fmt->fourcc == V4L2_PIX_FMT_NV16) {
+			width_len  = dev->width*3;
+			width_buf = dev->width;
+			height_buf = dev->height;
 		} else {
 			width_len  = dev->width;
 			width_buf = dev->width;
