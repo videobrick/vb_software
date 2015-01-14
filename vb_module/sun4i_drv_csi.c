@@ -84,6 +84,8 @@
 #define MAX_WIDTH  (2048)
 #define MAX_HEIGHT (2048)
 
+#define CSI_24BIT 4
+
 static unsigned video_nr = 1;
 static unsigned first_flag = 0;
 static unsigned char *dummybuffer;
@@ -251,7 +253,7 @@ static struct csi_fmt formats[] = {
 		.name     		= "Grey singel plane",
 		.ccm_fmt		= V4L2_MBUS_FMT_FIXED,	//linux-3.0
 		.fourcc   		= V4L2_PIX_FMT_GREY, //V4L2_PIX_FMT_RGB24,
-		.input_fmt		= CSI_RAW,
+		.input_fmt		= CSI_24BIT,
 		.output_fmt		= 12,
 		.depth    		= 8,
 		.planes_cnt		= 1,
@@ -260,7 +262,7 @@ static struct csi_fmt formats[] = {
 		.name     		= "nv16",
 		.ccm_fmt		= V4L2_MBUS_FMT_FIXED,	//linux-3.0
 		.fourcc   		= V4L2_PIX_FMT_NV16, //V4L2_PIX_FMT_RGB24,
-		.input_fmt		= CSI_RAW,
+		.input_fmt		= CSI_24BIT,
 		.output_fmt		= 12,
 		.depth    		= 16,
 		.planes_cnt		= 1,
@@ -310,7 +312,27 @@ static inline void csi_set_addr(struct csi_dev *dev,struct csi_buffer *buffer)
 	addr_org = videobuf_to_dma_contig((struct videobuf_buffer *)buf);
 
 
-	if(dev->fmt->input_fmt==CSI_RAW) {
+	if(dev->fmt->input_fmt==CSI_24BIT) {
+		dev->csi_buf_addr.y  = addr_org + dev->width*dev->height*0;
+		dev->csi_buf_addr.cb = addr_org + dev->width*dev->height*1;
+		dev->csi_buf_addr.cr = addr_org + dev->width*dev->height*1;	
+
+		if(dev->fmt->fourcc==V4L2_PIX_FMT_GREY)
+		{
+			bsp_csi_set_buffer_address(dev, CSI_BUF_0_A, (u32)dummybuffer);
+			bsp_csi_set_buffer_address(dev, CSI_BUF_0_B, (u32)dummybuffer);
+		} else {
+	
+			bsp_csi_set_buffer_address(dev, CSI_BUF_0_A, dev->csi_buf_addr.cb);
+			bsp_csi_set_buffer_address(dev, CSI_BUF_0_B, dev->csi_buf_addr.cb);
+		}
+
+		bsp_csi_set_buffer_address(dev, CSI_BUF_1_A, dev->csi_buf_addr.y);
+		bsp_csi_set_buffer_address(dev, CSI_BUF_1_B, dev->csi_buf_addr.y);
+		bsp_csi_set_buffer_address(dev, CSI_BUF_2_A, (u32)dummybuffer);
+		bsp_csi_set_buffer_address(dev, CSI_BUF_2_B, (u32)dummybuffer);
+	
+	} else if(dev->fmt->input_fmt==CSI_RAW) {
 
 		dev->csi_buf_addr.y  = addr_org + dev->width*dev->height*1;
 		dev->csi_buf_addr.cb = addr_org + dev->width*dev->height*0;
@@ -354,22 +376,21 @@ static inline void csi_set_addr(struct csi_dev *dev,struct csi_buffer *buffer)
 		}
 	}
 
+	if(dev->fmt->input_fmt!=CSI_24BIT) {
 	bsp_csi_set_buffer_address(dev, CSI_BUF_0_A, dev->csi_buf_addr.y);
 	bsp_csi_set_buffer_address(dev, CSI_BUF_0_B, dev->csi_buf_addr.y);
+	bsp_csi_set_buffer_address(dev, CSI_BUF_1_A, dev->csi_buf_addr.cb);
+	bsp_csi_set_buffer_address(dev, CSI_BUF_1_B, dev->csi_buf_addr.cb);
+	bsp_csi_set_buffer_address(dev, CSI_BUF_2_A, dev->csi_buf_addr.cr);
+	bsp_csi_set_buffer_address(dev, CSI_BUF_2_B, dev->csi_buf_addr.cr);
+	}
+
+
 //	bsp_csi_set_buffer_address(dev, CSI_BUF_0_A, dummybuffer);
 //	bsp_csi_set_buffer_address(dev, CSI_BUF_0_B, dummybuffer);
 
 //	if (dev->fmt->fourcc==V4L2_PIX_FMT_NV16) 
 
-
-	bsp_csi_set_buffer_address(dev, CSI_BUF_1_A, dev->csi_buf_addr.cb);
-	bsp_csi_set_buffer_address(dev, CSI_BUF_1_B, dev->csi_buf_addr.cb);
-/*
-	bsp_csi_set_buffer_address(dev, CSI_BUF_2_A, dev->csi_buf_addr.cr);
-	bsp_csi_set_buffer_address(dev, CSI_BUF_2_B, dev->csi_buf_addr.cr);
-*/
-	bsp_csi_set_buffer_address(dev, CSI_BUF_2_A, dummybuffer);
-	bsp_csi_set_buffer_address(dev, CSI_BUF_2_B, dummybuffer);
 
 	printk("csi_buf_addr_y=%x\n",  dev->csi_buf_addr.y);
 	printk("csi_buf_addr_cb=%x\n", dev->csi_buf_addr.cb);
@@ -642,7 +663,18 @@ static int buffer_setup(struct videobuf_queue *vq, unsigned int *count, unsigned
 
 	csi_dbg(1,"buffer_setup\n");
 
-	if(dev->fmt->input_fmt == CSI_RAW)
+	if(dev->fmt->input_fmt == CSI_24BIT)
+	{
+		switch(dev->fmt->fourcc) {
+			case V4L2_PIX_FMT_GREY:
+				*size = dev->width * dev->height;
+				break;
+			case V4L2_PIX_FMT_NV16:
+				*size = dev->width * dev->height * 3 ;
+				break;
+		}
+	} 
+	else if(dev->fmt->input_fmt == CSI_RAW)
 	{
 		switch(dev->fmt->fourcc) {
 			case 	V4L2_PIX_FMT_YUYV:
@@ -662,7 +694,7 @@ static int buffer_setup(struct videobuf_queue *vq, unsigned int *count, unsigned
 				*size = dev->width * dev->height ;
 				break;
 		}
-	}
+	}	
 	else if(dev->fmt->input_fmt == CSI_BAYER)
 	{
 		*size = dev->width * dev->height;
@@ -968,6 +1000,11 @@ static int vidioc_s_fmt_vid_cap(struct file *file, void *priv,
 	}
 
 	switch(dev->fmt->input_fmt){
+	case CSI_24BIT:
+			width_len  = dev->width;
+			width_buf = dev->width;
+			height_buf = dev->height;
+			break;
 	case CSI_RAW:
 		if ( (dev->fmt->fourcc == V4L2_PIX_FMT_YUYV) || (dev->fmt->fourcc == V4L2_PIX_FMT_YVYU) || \
 				 (dev->fmt->fourcc == V4L2_PIX_FMT_UYVY) || (dev->fmt->fourcc == V4L2_PIX_FMT_VYUY)) {
