@@ -81,12 +81,14 @@
 
 #define MIN_WIDTH  (32)
 #define MIN_HEIGHT (32)
-#define MAX_WIDTH  (4096)
-#define MAX_HEIGHT (4096)
+#define MAX_WIDTH  (2048)
+#define MAX_HEIGHT (2048)
 
 static unsigned video_nr = 1;
 static unsigned first_flag = 0;
-
+static unsigned char *dummybuffer;
+static int h_offset = 0;
+static int v_offset = 0;
 
 
 static char ccm[I2C_NAME_SIZE] = "";
@@ -109,6 +111,10 @@ module_param_string(ccm, ccm, sizeof(ccm), S_IRUGO|S_IWUSR);
 module_param(i2c_addr,uint, S_IRUGO|S_IWUSR);
 module_param_string(ccm_b, ccm_b, sizeof(ccm_b), S_IRUGO|S_IWUSR);
 module_param(i2c_addr_b,uint, S_IRUGO|S_IWUSR);
+module_param(v_offset, int, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP);
+MODULE_PARM_DESC(v_offset, "A short integer");
+module_param(h_offset, int, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP);
+MODULE_PARM_DESC(h_offset, "A short integer");
 
 static struct i2c_board_info  dev_sensor[] =  {
 	{
@@ -304,10 +310,11 @@ static inline void csi_set_addr(struct csi_dev *dev,struct csi_buffer *buffer)
 	addr_org = videobuf_to_dma_contig((struct videobuf_buffer *)buf);
 
 
-	if(dev->fmt->input_fmt==CSI_RAW){
+	if(dev->fmt->input_fmt==CSI_RAW) {
+
 		dev->csi_buf_addr.y  = addr_org + dev->width*dev->height*1;
 		dev->csi_buf_addr.cb = addr_org + dev->width*dev->height*0;
-		dev->csi_buf_addr.cr = addr_org + dev->width*dev->height*2;
+		dev->csi_buf_addr.cr = addr_org + dev->width*dev->height*0;
 
 	}else if(dev->fmt->input_fmt==CSI_BAYER){
 		//really rare here
@@ -349,10 +356,20 @@ static inline void csi_set_addr(struct csi_dev *dev,struct csi_buffer *buffer)
 
 	bsp_csi_set_buffer_address(dev, CSI_BUF_0_A, dev->csi_buf_addr.y);
 	bsp_csi_set_buffer_address(dev, CSI_BUF_0_B, dev->csi_buf_addr.y);
+//	bsp_csi_set_buffer_address(dev, CSI_BUF_0_A, dummybuffer);
+//	bsp_csi_set_buffer_address(dev, CSI_BUF_0_B, dummybuffer);
+
+//	if (dev->fmt->fourcc==V4L2_PIX_FMT_NV16) 
+
+
 	bsp_csi_set_buffer_address(dev, CSI_BUF_1_A, dev->csi_buf_addr.cb);
 	bsp_csi_set_buffer_address(dev, CSI_BUF_1_B, dev->csi_buf_addr.cb);
+/*
 	bsp_csi_set_buffer_address(dev, CSI_BUF_2_A, dev->csi_buf_addr.cr);
 	bsp_csi_set_buffer_address(dev, CSI_BUF_2_B, dev->csi_buf_addr.cr);
+*/
+	bsp_csi_set_buffer_address(dev, CSI_BUF_2_A, dummybuffer);
+	bsp_csi_set_buffer_address(dev, CSI_BUF_2_B, dummybuffer);
 
 	printk("csi_buf_addr_y=%x\n",  dev->csi_buf_addr.y);
 	printk("csi_buf_addr_cb=%x\n", dev->csi_buf_addr.cb);
@@ -959,7 +976,7 @@ static int vidioc_s_fmt_vid_cap(struct file *file, void *priv,
 			width_buf = dev->width*2;
 			height_buf = dev->height;
 		} else if (dev->fmt->fourcc == V4L2_PIX_FMT_NV16) {
-			width_len  = dev->width*3;
+			width_len  = dev->width;
 			width_buf = dev->width;
 			height_buf = dev->height;
 		} else {
@@ -1410,7 +1427,7 @@ static int csi_open(struct file *file)
 	dev->input=0;//default input
 
 	bsp_csi_open(dev);
-	bsp_csi_set_offset(dev,200,10);//h and v offset is initialed to zero
+	bsp_csi_set_offset(dev,h_offset,v_offset);//h and v offset is initialed to zero
 
 	ret = v4l2_subdev_call(dev->sd,core, s_power, CSI_SUBDEV_STBY_OFF);
 	if (ret!=0) {
@@ -1750,6 +1767,14 @@ static int csi_probe(struct platform_device *pdev)
 		goto err_info;
 	}
 
+	dummybuffer = kmalloc(MAX_WIDTH*MAX_HEIGHT, GFP_KERNEL);
+
+	if (!res) {
+		csi_err("failed to alloc dummybuffer\n");
+		ret = -ENOENT;
+		goto err_info;
+	}
+
 	dev->regs_res = request_mem_region(res->start, resource_size(res),
 			dev_name(&pdev->dev));
 	if (!dev->regs_res) {
@@ -2030,6 +2055,7 @@ static int csi_release(void)
 		free_irq(dev->irq, dev);
 		iounmap(dev->regs);
 		release_resource(dev->regs_res);
+		kfree(dummybuffer);
 		kfree(dev->regs_res);
 		kfree(dev);
 	}

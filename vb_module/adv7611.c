@@ -123,11 +123,13 @@ unsigned char adv7611_i2c_map[7] = {
 __defs_adv7611_io defs_adv7611_io[] = {
 	
 //	{ ADV7611_IO_PRIMARY_MODE, 0x06 }, 	// V-FREQ = 60Hz Prim_Mode = HDMI-GR 
-	{ ADV7611_IO_PRIMARY_MODE, 0x16 }, 	// V-FREQ = 50Hz Prim_Mode = HDMI-GR 
-	{ ADV7611_IO_REG_02, 0xf2 },		// Auto CSC, RGB out Disable op_656 bit
+	{ ADV7611_IO_PRIMARY_MODE, 0x16 }, 	// V-FREQ = 50Hz Prim_Mode = HDMI-GR
+//	{ ADV7611_IO_REG_02, 0xf2 },		// Auto CSC, RGB out Disable op_656 bit
+	{ ADV7611_IO_REG_02, 0xf0 },		// RGB CSC Input, YPrPb OUTPUT Disable op_656 bit
 //	{ ADV7611_IO_REG_03, 0x42 },		// RGB24 (24Bit)
 	{ ADV7611_IO_REG_03, 0x80 },		// YUV422 Mode (16Bit)
 	{ ADV7611_IO_REG_05, 0x28 }, 		// AV Codes Off 
+	{ ADV7611_IO_REG_06, 0xA0 }, 		// Pos HSYNC, Pos VSYNC 
 	{ ADV7611_IO_REG_0B, 0x44 }, 		// Power up part
 	{ ADV7611_IO_REG_0C, 0x42 },        // Power up part 
 	{ ADV7611_IO_REG_14, 0x7f }, 		// Max Drive Strength 
