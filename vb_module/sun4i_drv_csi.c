@@ -131,7 +131,8 @@ static struct i2c_board_info  dev_sensor[] =  {
 
 //ccm support format
 static struct csi_fmt formats[] = {
-/*	{
+/*
+	{
 		.name     		= "planar YUV 422",
 		.ccm_fmt			= V4L2_MBUS_FMT_YUYV8_2X8,//linux-3.0
 		.fourcc   		= V4L2_PIX_FMT_YUV422P,
@@ -316,16 +317,17 @@ static inline void csi_set_addr(struct csi_dev *dev,struct csi_buffer *buffer)
 		dev->csi_buf_addr.y  = addr_org + dev->width*dev->height*0;
 		dev->csi_buf_addr.cb = addr_org + dev->width*dev->height*1;
 		dev->csi_buf_addr.cr = addr_org + dev->width*dev->height*1;	
-
+/*
 		if(dev->fmt->fourcc==V4L2_PIX_FMT_GREY)
 		{
 			bsp_csi_set_buffer_address(dev, CSI_BUF_0_A, (u32)dummybuffer);
 			bsp_csi_set_buffer_address(dev, CSI_BUF_0_B, (u32)dummybuffer);
 		} else {
+*/
 	
 			bsp_csi_set_buffer_address(dev, CSI_BUF_0_A, dev->csi_buf_addr.cb);
 			bsp_csi_set_buffer_address(dev, CSI_BUF_0_B, dev->csi_buf_addr.cb);
-		}
+		//}
 
 		bsp_csi_set_buffer_address(dev, CSI_BUF_1_A, dev->csi_buf_addr.y);
 		bsp_csi_set_buffer_address(dev, CSI_BUF_1_B, dev->csi_buf_addr.y);
@@ -670,7 +672,7 @@ static int buffer_setup(struct videobuf_queue *vq, unsigned int *count, unsigned
 				*size = dev->width * dev->height;
 				break;
 			case V4L2_PIX_FMT_NV16:
-				*size = dev->width * dev->height * 3 ;
+				*size = dev->width * dev->height * 2 ;
 				break;
 		}
 	} 
@@ -1004,6 +1006,7 @@ static int vidioc_s_fmt_vid_cap(struct file *file, void *priv,
 			width_len  = dev->width;
 			width_buf = dev->width;
 			height_buf = dev->height;
+			printk("REGS width = %d height = %d len = %d\n",width_buf, height_buf, width_len);
 			break;
 	case CSI_RAW:
 		if ( (dev->fmt->fourcc == V4L2_PIX_FMT_YUYV) || (dev->fmt->fourcc == V4L2_PIX_FMT_YVYU) || \

@@ -1,0 +1,1 @@
+./v4l2-capture -d /dev/video1 -f -c 1 -o > nv16_1.raw

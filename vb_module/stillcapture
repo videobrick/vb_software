@@ -1,1 +1,1 @@
-gst-launch-1.0 -v v4l2src device=/dev/video1 ! video/x-raw, format=GRAY8, framerate=50/1, width=1280, height=720 ! videoconvert ! pngenc snapshot=true ! filesink location=test.png
+gst-launch-1.0 -v v4l2src device=/dev/video1 ! video/x-raw, format=NV16, framerate=50/1, width=1280, height=720 ! videoconvert ! pngenc snapshot=true ! filesink location=test.png
