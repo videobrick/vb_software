@@ -1,1 +1,3 @@
-./v4l2-capture -d /dev/video1 -f -c 1 -o > nv16_1.raw
+./v4l2-capture -d /dev/video1 -f -c 1 -o > test01.yuv
+./nv16toyuv_planar test01.yuv test01_planar422.yuv 1280 720
+ffmpeg -pix_fmt yuv422p -s 1280x720 -f rawvideo -vcodec rawvideo -i test01_planar422.yuv test01.png

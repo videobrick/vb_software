@@ -24,6 +24,7 @@
  * Sun4i Camera Interface  driver
  * Author: raymonxiu
  */
+
 #include <linux/module.h>
 #include <linux/errno.h>
 #include <linux/kernel.h>
@@ -85,6 +86,7 @@
 #define MAX_HEIGHT (2048)
 
 #define CSI_24BIT 4
+
 
 static unsigned video_nr = 1;
 static unsigned first_flag = 0;
