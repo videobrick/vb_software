@@ -39,6 +39,7 @@ typedef enum regs_ADV7611_CP
 {
 	ADV7611_CP_REG_3E = 0x3E,
 	ADV7611_CP_HDMI_CP_CNTRL_1 = 0xBA,
+	ADV7611_CP_START_HS = 0x7E,
 } __regs_adv7611_cp;
 
 typedef enum regs_ADV7611_HDMI

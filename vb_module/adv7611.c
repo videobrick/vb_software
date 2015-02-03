@@ -142,6 +142,7 @@ __defs_adv7611_cp defs_adv7611_cp[] = {
 	
 	{ ADV7611_CP_HDMI_CP_CNTRL_1, 0x01 }, 	// Set HDMI FreeRun 
 	{ ADV7611_CP_REG_3E, 0x80 },			// Enable color adjustment
+	{ ADV7611_CP_START_HS, 100},		//delay Hsync 200 pixelclocks
 };
 
 __defs_adv7611_hdmi defs_adv7611_hdmi[] = {

@@ -486,7 +486,7 @@ static void init_device(void)
                 fmt.fmt.pix.width       = 1280;
                 fmt.fmt.pix.height      = 720;
                 fmt.fmt.pix.pixelformat = V4L2_PIX_FMT_NV16;
-                fmt.fmt.pix.field       = V4L2_FIELD_INTERLACED;
+                fmt.fmt.pix.field       = V4L2_FIELD_ANY;
 
                 if (-1 == xioctl(fd, VIDIOC_S_FMT, &fmt))
                         errno_exit("VIDIOC_S_FMT");
